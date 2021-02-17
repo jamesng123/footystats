@@ -431,15 +431,30 @@ def clean_up_urls():
     return captured_urls
 
 
-# print(get_scraped_urls())
+def get_teams(url):
 
-# home_df = get_home_outfield_team_data('https://fbref.com/en/matches/37753f62/Southampton-Arsenal-January-23-2021-FA-Cup', '')
-# away_df = get_away_outfield_team_data('https://fbref.com/en/matches/6504b158/Manchester-United-Everton-February-6-2021-Premier-League', '')
+    # home_players, away_players = get_players(url)
 
-# full_match_df = home_df.append(away_df, ignore_index=True)
-# print(home_df)
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, "html.parser")
+    html = list(soup.children)[3]
+    main = soup.find_all("title")
+    teams = soup.find_all("a")
+    # 46 is the competition
+    # 47 is the home team
+    # 51 is the away team
+
+    home_team = teams[47].get_text().lower().split()
+    away_team = teams[51].get_text().lower().split()
+    home_team = "_".join(home_team)
+    away_team = "_".join(away_team)
+
+    print(f"{home_team} vs. {away_team}")
+
+    return home_team, away_team
 
 
+# Need to write a function to get these links programatically
 premier_league_teams = [
     "https://fbref.com/en/squads/b8fd03ef/Manchester-City-Stats",
     "https://fbref.com/en/squads/19538871/Manchester-United-Stats",
