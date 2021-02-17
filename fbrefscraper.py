@@ -5,6 +5,7 @@ import numpy as np
 import re
 import sys, getopt
 import csv
+import os
 
 summary = [
     "player",
@@ -449,8 +450,12 @@ def get_teams(url):
     home_team = "_".join(home_team)
     away_team = "_".join(away_team)
 
-    print(f"{home_team} vs. {away_team}")
+    # Sometimes the away team appears as "prev-match"
+    if away_team == "prev_match":
+        away_team = teams[50].get_text().lower().split()
+        away_team = "_".join(away_team)
 
+    print(f'{home_team} vs. {away_team}')
     return home_team, away_team
 
 
@@ -486,10 +491,19 @@ def main():
         for i in get_fixtures(team)[1]:
             if i not in captured_urls:
                 try:
+                    home, away = get_teams(i)
+                    os.makedirs(home, exist_ok=True)
+                    os.makedirs(away, exist_ok=True)
+
                     home_df = get_home_outfield_team_data(i, "")
-                    home_df.to_csv(f"home_{i[38:]}.csv", encoding="utf-8", index=False)
+                    home_df.to_csv(
+                        f"{home}/home_{home}-vs-{away}.csv"
+                    )
                     away_df = get_away_outfield_team_data(i, "")
-                    away_df.to_csv(f"away_{i[38:]}.csv", encoding="utf-8", index=False)
+                    away_df.to_csv(
+                        f"{away}/away_{home}-vs-{away}.csv"
+                    )
+
                 except:
                     broken_urls.append(i)
             else:
@@ -497,3 +511,6 @@ def main():
 
     if len(broken_urls) > 0:
         print("BROKEN URLS: ", broken_urls)
+
+
+main()
