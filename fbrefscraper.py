@@ -380,7 +380,7 @@ def get_fixtures(url):
         fixtures = list(main.children)[17].find_all("a", href=True)
     except:
         print(url)
-    # print(fixtures)
+
     # Seems as if domestic cups dont have the same level of detail
     domestic_cup_fixture_urls = set(
         [
@@ -434,8 +434,6 @@ def clean_up_urls():
 
 def get_teams(url):
 
-    # home_players, away_players = get_players(url)
-
     page = requests.get(url)
     soup = BeautifulSoup(page.content, "html.parser")
     html = list(soup.children)[3]
@@ -455,7 +453,6 @@ def get_teams(url):
         away_team = teams[50].get_text().lower().split()
         away_team = "_".join(away_team)
 
-    print(f'{home_team} vs. {away_team}')
     return home_team, away_team
 
 
@@ -487,30 +484,32 @@ premier_league_teams = [
 def main():
     broken_urls = []
     captured_urls = clean_up_urls()
+    datadir = "data"
+    os.makedirs(datadir, exist_ok=True)
     for team in premier_league_teams:
         for i in get_fixtures(team)[1]:
             if i not in captured_urls:
                 try:
                     home, away = get_teams(i)
-                    os.makedirs(home, exist_ok=True)
-                    os.makedirs(away, exist_ok=True)
+                    os.makedirs(f'{datadir}/{home}', exist_ok=True)
+                    os.makedirs(f'{datadir}/{away}', exist_ok=True)
 
                     home_df = get_home_outfield_team_data(i, "")
                     home_df.to_csv(
-                        f"{home}/home_{home}-vs-{away}.csv"
+                        f"{datadir}/{home}/home_{home}-vs-{away}.csv"
                     )
                     away_df = get_away_outfield_team_data(i, "")
                     away_df.to_csv(
-                        f"{away}/away_{home}-vs-{away}.csv"
+                        f"{datadir}/{away}/away_{home}-vs-{away}.csv"
                     )
 
                 except:
                     broken_urls.append(i)
             else:
-                print(f"This url, {i}, has already been scraped")
+                pass
+                # print(f"This url, {i}, has already been scraped")
 
     if len(broken_urls) > 0:
         print("BROKEN URLS: ", broken_urls)
 
-
-main()
+    clean_up_urls()
