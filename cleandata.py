@@ -20,29 +20,53 @@ def out_to_csv(team, match):
     data = clean_data(f"data/{team}/{match}")
     data.to_csv(f"data/{team}/cleaned_{match}")
 
+def get_dir_data():
+    data = os.listdir()
+    data = [
+        i for i in data if "." not in i and i != "footystatsenv" and i != "TODO"
+    ]  # Don't want to pick up any files, just the team folders
+    return data
 
-data = os.listdir()
-data = [
-    i for i in data if "." not in i and i != "footystatsenv" and i != "TODO"
-]  # Don't want to pick up any files, just the team folders
+def clean():
+    data = get_dir_data()
+    for i in data:
+        teams = os.listdir(i)
+        for team in teams:
+            matches = os.listdir(f'{i}/{team}')
+            for match in matches:
+                # print(f'{team}/{match}')
+                try:
+                    out_to_csv(team, match)
+                except KeyError:
+                    pass  # We have already cleaned this file...
+                    print(team, match)
 
-for i in data:
-    teams = os.listdir(i)
-    for team in teams:
-        matches = os.listdir(f'{i}/{team}')
-        for match in matches:
-            # print(f'{team}/{match}')
-            try:
-                out_to_csv(team, match)
-            except KeyError:
-                pass  # We have already cleaned this file...
+    for i in data:
+        teams = os.listdir(i)
+        for team in teams:
+            matches = os.listdir(f'{i}/{team}')
+            for match in matches:
                 print(team, match)
+                if "cleaned" not in match:
+                    os.remove(f"{i}/{team}/{match}")
 
-for i in data:
-    teams = os.listdir(i)
-    for team in teams:
-        matches = os.listdir(f'{i}/{team}')
-        for match in matches:
-            print(team, match)
-            if "cleaned" not in match:
-                os.remove(f"{i}/{team}/{match}")
+# for i in data:
+#     teams = os.listdir(i)
+#     for team in teams:
+#         matches = os.listdir(f'{i}/{team}')
+#         for match in matches:
+#             # print(f'{team}/{match}')
+#             try:
+#                 out_to_csv(team, match)
+#             except KeyError:
+#                 pass  # We have already cleaned this file...
+#                 print(team, match)
+
+# for i in data:
+#     teams = os.listdir(i)
+#     for team in teams:
+#         matches = os.listdir(f'{i}/{team}')
+#         for match in matches:
+#             print(team, match)
+#             if "cleaned" not in match:
+#                 os.remove(f"{i}/{team}/{match}")
