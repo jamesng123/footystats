@@ -455,34 +455,54 @@ def get_teams(url):
 
     return home_team, away_team
 
+def get_comp_teams(url):
 
-def main(team_list):
+    page = requests.get(url)
+    soup = BeautifulSoup(page.content, 'html.parser')
+    html = list(soup.children)[3]
+    main = soup.find_all('title')
+    refs = soup.find_all('a', href=True)
+
+    for i in range(len(refs)):
+        if refs[i]['href'] == "#all_rank_key":
+            teams_index = i
+    teams = refs[teams_index+1:teams_index+21]
+    teams = [f'https://fbref.com/{i["href"]}' for i in teams]
+
+    return teams
+
+def main(year, team_list):
     broken_urls = []
-    captured_urls = clean_up_urls()
+    captured_urls = []
+    precaptured_urls = clean_up_urls()
     datadir = "data"
     os.makedirs(datadir, exist_ok=True)
+    os.makedirs(f'{datadir}/{year}', exist_ok=True)
+
     for team in team_list:
         for i in get_fixtures(team)[1]:
-            if i not in captured_urls:
+            if i not in precaptured_urls and i not in captured_urls:
                 try:
                     home, away = get_teams(i)
-                    os.makedirs(f'{datadir}/{home}', exist_ok=True)
-                    os.makedirs(f'{datadir}/{away}', exist_ok=True)
+                    print("Home: ", home)
+                    os.makedirs(f'{datadir}/{year}/{home}', exist_ok=True)
+                    os.makedirs(f'{datadir}/{year}/{away}', exist_ok=True)
 
                     home_df = get_home_outfield_team_data(i, "")
                     home_df.to_csv(
-                        f"{datadir}/{home}/home_{home}-vs-{away}.csv"
+                        f"{datadir}/{year}/{home}/home_{home}-vs-{away}.csv"
                     )
                     away_df = get_away_outfield_team_data(i, "")
                     away_df.to_csv(
-                        f"{datadir}/{away}/away_{home}-vs-{away}.csv"
+                        f"{datadir}/{year}/{away}/away_{home}-vs-{away}.csv"
                     )
 
                 except:
                     broken_urls.append(i)
+
+                captured_urls.append(i)
             else:
-                pass
-                # print(f"This url, {i}, has already been scraped")
+                print(f"This url, {i}, has already been scraped")
 
     if len(broken_urls) > 0:
         print("BROKEN URLS: ", broken_urls)
