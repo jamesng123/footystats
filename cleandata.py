@@ -16,57 +16,39 @@ def clean_data(match):
     return data
 
 
-def out_to_csv(team, match):
-    data = clean_data(f"data/{team}/{match}")
-    data.to_csv(f"data/{team}/cleaned_{match}")
+def out_to_csv(year, team, match):
+    data = clean_data(f"data/{year}/{team}/{match}")
+    data.to_csv(f"data/{year}/{team}/cleaned_{match}")
 
 def get_dir_data():
     data = os.listdir()
     data = [
-        i for i in data if "." not in i and i != "footystatsenv" and i != "TODO"
+        i for i in data if "." not in i and i != "footystatsenv" and i != "TODO" and i != "__pycache__"
     ]  # Don't want to pick up any files, just the team folders
     return data
 
-def clean():
+def clean(year):
     data = get_dir_data()
     for i in data:
-        teams = os.listdir(i)
+        teams = os.listdir(f'{i}/{year}')
         for team in teams:
-            matches = os.listdir(f'{i}/{team}')
+            matches = os.listdir(f'{i}/{year}/{team}')
             for match in matches:
                 # print(f'{team}/{match}')
                 try:
-                    out_to_csv(team, match)
+                    out_to_csv(year, team, match)
                 except KeyError:
                     pass  # We have already cleaned this file...
-                    print(team, match)
+                    # print(team, match)
 
     for i in data:
-        teams = os.listdir(i)
+        teams = os.listdir(f'{i}/{year}')
         for team in teams:
-            matches = os.listdir(f'{i}/{team}')
+            matches = os.listdir(f'{i}/{year}/{team}')
             for match in matches:
                 print(team, match)
                 if "cleaned" not in match:
-                    os.remove(f"{i}/{team}/{match}")
+                    os.remove(f"{i}/{year}/{team}/{match}")
 
-# for i in data:
-#     teams = os.listdir(i)
-#     for team in teams:
-#         matches = os.listdir(f'{i}/{team}')
-#         for match in matches:
-#             # print(f'{team}/{match}')
-#             try:
-#                 out_to_csv(team, match)
-#             except KeyError:
-#                 pass  # We have already cleaned this file...
-#                 print(team, match)
 
-# for i in data:
-#     teams = os.listdir(i)
-#     for team in teams:
-#         matches = os.listdir(f'{i}/{team}')
-#         for match in matches:
-#             print(team, match)
-#             if "cleaned" not in match:
-#                 os.remove(f"{i}/{team}/{match}")
+clean("19_20")
