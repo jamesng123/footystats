@@ -417,6 +417,10 @@ def get_scraped_urls():
             urls.append(i.strip())
     return urls
 
+def record_broken_urls(urls):
+    with open("broken_urls.txt", "a") as myfile:
+        for i in urls:
+            myfile.write(f"{i}\n")
 
 def clean_up_urls():
     captured_urls = set(get_scraped_urls())
@@ -439,19 +443,18 @@ def get_teams(url):
     html = list(soup.children)[3]
     main = soup.find_all("title")
     teams = soup.find_all("a")
-    # 46 is the competition
-    # 47 is the home team
-    # 51 is the away team
 
-    home_team = teams[47].get_text().lower().split()
-    away_team = teams[51].get_text().lower().split()
+    team_indexes = []
+
+    for i in range(len(teams)):
+        if teams[i].get_text().lower() == "prev match":
+            team_indexes.append(i-1)
+
+    home_team = teams[min(team_indexes)].get_text().lower().split()
+    away_team = teams[max(team_indexes)].get_text().lower().split()
+
     home_team = "_".join(home_team)
     away_team = "_".join(away_team)
-
-    # Sometimes the away team appears as "prev-match"
-    if away_team == "prev_match":
-        away_team = teams[50].get_text().lower().split()
-        away_team = "_".join(away_team)
 
     return home_team, away_team
 
@@ -506,5 +509,6 @@ def main(year, team_list):
 
     if len(broken_urls) > 0:
         print("BROKEN URLS: ", broken_urls)
+        record_broken_urls(broken_urls)
 
     clean_up_urls()
