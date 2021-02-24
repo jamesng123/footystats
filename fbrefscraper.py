@@ -364,14 +364,19 @@ def get_away_outfield_team_data(top, end):
     return df
 
 
-def get_fixtures(url):
-    # Need to fix to get all seasons
+#################################################
 
-    team = url[url.rfind("/") + 1 : -6]
-
+def get_data(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, "html.parser")
     html = list(soup.children)[3]
+
+    return soup, html
+
+def get_fixtures(url, html):
+    # Need to fix to get all seasons
+    team = url[url.rfind("/") + 1 : -6]
+
     body = list(html.children)[3]
     p = list(body.children)[1]
     main = list(p.children)[-6]
@@ -436,12 +441,8 @@ def clean_up_urls():
     return captured_urls
 
 
-def get_teams(url):
+def get_teams(soup):
 
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, "html.parser")
-    html = list(soup.children)[3]
-    main = soup.find_all("title")
     teams = soup.find_all("a")
 
     team_indexes = []
@@ -462,8 +463,6 @@ def get_comp_teams(url):
 
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    html = list(soup.children)[3]
-    main = soup.find_all('title')
     refs = soup.find_all('a', href=True)
 
     for i in range(len(refs)):
@@ -474,41 +473,4 @@ def get_comp_teams(url):
 
     return teams
 
-def main(year, team_list):
-    broken_urls = []
-    captured_urls = []
-    precaptured_urls = clean_up_urls()
-    datadir = "data"
-    os.makedirs(datadir, exist_ok=True)
-    os.makedirs(f'{datadir}/{year}', exist_ok=True)
-
-    for team in team_list:
-        for i in get_fixtures(team)[1]:
-            if i not in precaptured_urls and i not in captured_urls:
-                try:
-                    home, away = get_teams(i)
-                    print("Home: ", home)
-                    os.makedirs(f'{datadir}/{year}/{home}', exist_ok=True)
-                    os.makedirs(f'{datadir}/{year}/{away}', exist_ok=True)
-
-                    home_df = get_home_outfield_team_data(i, "")
-                    home_df.to_csv(
-                        f"{datadir}/{year}/{home}/home_{home}-vs-{away}.csv"
-                    )
-                    away_df = get_away_outfield_team_data(i, "")
-                    away_df.to_csv(
-                        f"{datadir}/{year}/{away}/away_{home}-vs-{away}.csv"
-                    )
-
-                except:
-                    broken_urls.append(i)
-
-                captured_urls.append(i)
-            else:
-                print(f"This url, {i}, has already been scraped")
-
-    if len(broken_urls) > 0:
-        print("BROKEN URLS: ", broken_urls)
-        record_broken_urls(broken_urls)
-
-    clean_up_urls()
+clean_up_urls()
