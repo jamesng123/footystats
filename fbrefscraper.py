@@ -222,7 +222,7 @@ def get_match_tables(url):
     res = requests.get(url)
     ## The next two lines get around the issue with comments breaking the parsing.
     comm = re.compile("<!--|-->")
-    soup = BeautifulSoup(comm.sub("", res.text), "lxml")
+    soup = BeautifulSoup(comm.sub("", res.text), "html.parser")
     all_tables = soup.findAll("tbody")
 
     home_summary_table = all_tables[0]
@@ -377,6 +377,8 @@ def get_fixtures(url, html):
     # Need to fix to get all seasons
     team = url[url.rfind("/") + 1 : -6]
 
+    print("TEAM: ", team)
+
     body = list(html.children)[3]
     p = list(body.children)[1]
     main = list(p.children)[-6]
@@ -465,12 +467,20 @@ def get_comp_teams(url):
     soup = BeautifulSoup(page.content, 'html.parser')
     refs = soup.find_all('a', href=True)
 
-    for i in range(len(refs)):
-        if refs[i]['href'] == "#all_rank_key":
-            teams_index = i
-    teams = refs[teams_index+1:teams_index+21]
-    teams = [f'https://fbref.com/{i["href"]}' for i in teams]
+    pattern = re.compile("\/en\/squads\/\S+")
 
-    return teams
+    teams = [f'https://fbref.com{refs[i]["href"]}' for i in range(0, 400) if pattern.match(refs[i]["href"])]
 
-clean_up_urls()
+    # print(set(teams))
+    # print(len(set(teams)))
+    # print("\n\n\n")
+    
+    return set(teams)
+
+# print(get_comp_teams("https://fbref.com/en/comps/20/Bundesliga-Stats"))
+# print(get_comp_teams("https://fbref.com/en/comps/9/Premier-League-Stats"))
+# print(get_comp_teams("https://fbref.com/en/comps/13/Ligue-1-Stats"))
+# print(get_comp_teams("https://fbref.com/en/comps/11/Serie-A-Stats"))
+# print(get_comp_teams("https://fbref.com/en/comps/12/La-Liga-Stats"))
+
+# clean_up_urls()
