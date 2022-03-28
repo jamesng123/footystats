@@ -27,6 +27,8 @@ def get_scorebox_data(html):
 
     data = list(main.children)[5]
 
+    print(data)
+
     time_data = data.find_all("div", {"class": "scorebox_meta"})
 
     data_new = [list(i.children) for i in time_data]
@@ -52,4 +54,4 @@ def get_referee():
 def get_attendance(html):
     return get_scorebox_data(html)[3]
 
-print(get_scores(html), get_scorebox_data(html))
+print(get_scorebox_data(html))
